@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>棋盘格子问题诊断</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 2px solid #ccc; border-radius: 10px; }
+        .success { border-color: #4CAF50; background: #f0f9f0; }
+        .warning { border-color: #FF9800; background: #fff8e1; }
+        .error { border-color: #f44336; background: #ffebee; }
+        canvas { border: 2px solid #333; margin: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    </style>
+</head>
+<body>
+    <h1>棋盘格子问题诊断</h1>
+    
+    <div class="test-section warning">
+        <h2>🔍 问题分析</h2>
+        <p>用户报告：棋盘格子又没了</p>
+        <p>需要检查：</p>
+        <ol>
+            <li>Canvas尺寸是否正确</li>
+            <li>网格线绘制逻辑</li>
+            <li>棋盘背景缓存是否正常工作</li>
+            <li>CSS样式是否影响显示</li>
+        </ol>
+    </div>
+    
+    <div class="grid">
+        <div class="test-section">
+            <h3>测试1: 简单棋盘绘制</h3>
+            <canvas id="test1" width="300" height="300" style="background: #f0d9b5;"></canvas>
+            <button onclick="drawSimpleBoard()">绘制测试棋盘</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试2: 原版棋盘</h3>
+            <iframe src="gobang-no-animation.html" width="300" height="300"></iframe>
+            <p>检查原版棋盘显示</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>代码检查</h3>
+        <div id="code-check"></div>
+    </div>
+    
+    <script>
+        // 测试1: 简单棋盘绘制
+        function drawSimpleBoard() {
+            const canvas = document.getElementById('test1');
+            const ctx = canvas.getContext('2d');
+            const boardSize = 15;
+            const cellSize = canvas.width / boardSize;
+            
+            // 清空画布
+            ctx.fillStyle = '#f0d9b5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制网格线
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i <= boardSize; i++) {
+                // 横线
+                ctx.beginPath();
+                ctx.moveTo(cellSize / 2, i * cellSize + cellSize / 2);
+                ctx.lineTo(canvas.width - cellSize / 2, i * cellSize + cellSize / 2);
+                ctx.stroke();
+                
+                // 竖线
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize + cellSize / 2, cellSize / 2);
+                ctx.lineTo(i * cellSize + cellSize / 2, canvas.height - cellSize / 2);
+                ctx.stroke();
+            }
+            
+            // 星位
+            const stars = [3, 7, 11];
+            stars.forEach(x => {
+                stars.forEach(y => {
+                    ctx.beginPath();
+                    ctx.arc(
+                        x * cellSize + cellSize / 2,
+                        y * cellSize + cellSize / 2,
+                        3, 0, Math.PI * 2
+                    );
+                    ctx.fillStyle = '#000';
+                    ctx.fill();
+                });
+            });
+            
+            document.getElementById('code-check').innerHTML = `
+                <div class="success">
+                    <h4>✅ 简单棋盘绘制成功</h4>
+                    <p>棋盘尺寸: ${canvas.width}×${canvas.height}</p>
+                    <p>格子大小: ${cellSize.toFixed(2)}px</p>
+                    <p>网格线: ${boardSize}×${boardSize}</p>
+                </div>
+            `;
+        }
+        
+        // 自动运行测试
+        setTimeout(drawSimpleBoard, 500);
+        
+        // 检查原版代码
+        function checkOriginalCode() {
+            fetch('gobang-no-animation.html')
+                .then(response => response.text())
+                .then(html => {
+                    const hasDrawBoardBackground = html.includes('drawBoardBackground');
+                    const hasCanvas = html.includes('<canvas');
+                    const hasGridLines = html.includes('lineTo');
+                    
+                    let checkResults = `
+                        <div class="${hasDrawBoardBackground ? 'success' : 'error'}">
+                            <h4>${hasDrawBoardBackground ? '✅' : '❌'} drawBoardBackground函数</h4>
+                            <p>${hasDrawBoardBackground ? '存在' : '缺失'}</p>
+                        </div>
+                        <div class="${hasCanvas ? 'success' : 'error'}">
+                            <h4>${hasCanvas ? '✅' : '❌'} Canvas元素</h4>
+                            <p>${hasCanvas ? '存在' : '缺失'}</p>
+                        </div>
+                        <div class="${hasGridLines ? 'success' : 'error'}">
+                            <h4>${hasGridLines ? '✅' : '❌'} 网格线绘制代码</h4>
+                            <p>${hasGridLines ? '存在' : '缺失'}</p>
+                        </div>
+                    `;
+                    
+                    document.getElementById('code-check').innerHTML += checkResults;
+                });
+        }
+        
+        setTimeout(checkOriginalCode, 1000);
+    </script>
+</body>
+</html>

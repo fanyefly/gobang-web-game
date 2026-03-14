@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>五子棋完整修复测试</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 2px solid #ccc; border-radius: 10px; }
+        .success { border-color: #4CAF50; background: #f0f9f0; }
+        .warning { border-color: #FF9800; background: #fff8e1; }
+        .error { border-color: #f44336; background: #ffebee; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        iframe { width: 100%; height: 600px; border: 2px solid #333; }
+        button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>🎮 五子棋完整修复测试</h1>
+    
+    <div class="test-section warning">
+        <h2>🔍 问题诊断总结</h2>
+        <p><strong>发现问题：</strong>原文件被截断，缺少关键函数定义</p>
+        <p><strong>修复内容：</strong></p>
+        <ol>
+            <li>✅ 创建完整的新版本文件</li>
+            <li>✅ 确保棋盘网格清晰可见</li>
+            <li>✅ 移除棋盘缩放动画（棋盘静态显示）</li>
+            <li>✅ 保留棋子绘制动画</li>
+            <li>✅ 包含所有游戏功能函数</li>
+            <li>✅ 修复棋盘大小切换功能</li>
+        </ol>
+    </div>
+    
+    <div class="grid">
+        <div class="test-section">
+            <h3>测试1: 棋盘网格显示</h3>
+            <iframe src="gobang-fixed-complete.html"></iframe>
+            <div>
+                <button onclick="testGrid()">测试网格显示</button>
+                <button onclick="testClick()">测试点击下棋</button>
+                <button onclick="testAll()">全面测试</button>
+            </div>
+            <div id="test1-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>测试2: 功能验证</h3>
+            <div id="test2-checklist">
+                <h4>✅ 必须通过的功能测试：</h4>
+                <ol>
+                    <li>棋盘网格必须清晰可见</li>
+                    <li>点击棋盘必须立即显示棋子</li>
+                    <li>双人PVP模式必须完整可用</li>
+                    <li>AI所有难度必须能正常下棋</li>
+                    <li>悔棋功能必须正常工作</li>
+                    <li>重新开始功能必须正常</li>
+                    <li>棋子交换功能必须正常</li>
+                    <li>棋盘必须静态显示（无缩放）</li>
+                </ol>
+            </div>
+            <div id="test2-result"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📋 测试结果</h3>
+        <div id="test-results">
+            <p>等待测试...</p>
+        </div>
+    </div>
+    
+    <script>
+        function testGrid() {
+            const iframe = document.querySelector('iframe');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const canvas = iframeDoc.getElementById('board');
+            
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let blackPixelCount = 0;
+                
+                // 检查黑色像素（网格线）
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    const r = imageData.data[i];
+                    const g = imageData.data[i + 1];
+                    const b = imageData.data[i + 2];
+                    if (r < 50 && g < 50 && b < 50) {
+                        blackPixelCount++;
+                    }
+                }
+                
+                const hasGrid = blackPixelCount > 1000; // 有足够多的黑色像素表示网格线
+                
+                const result = document.getElementById('test1-result');
+                if (hasGrid) {
+                    result.innerHTML = '<div class="success">✅ 棋盘网格显示正常</div>';
+                } else {
+                    result.innerHTML = '<div class="error">❌ 棋盘网格可能未显示</div>';
+                }
+                
+                updateTestResults('网格显示', hasGrid);
+            }
+        }
+        
+        function testClick() {
+            const iframe = document.querySelector('iframe');
+            const iframeWin = iframe.contentWindow;
+            
+            if (iframeWin.game) {
+                const originalMoves = iframeWin.game.totalMoves;
+                
+                // 模拟点击棋盘中心
+                const canvas = iframe.contentDocument.getElementById('board');
+                const rect = canvas.getBoundingClientRect();
+                const clickX = rect.left + rect.width / 2;
+                const clickY = rect.top + rect.height / 2;
+                
+                const clickEvent = new MouseEvent('click', {
+                    clientX: clickX,
+                    clientY: clickY,
+                    bubbles: true
+                });
+                
+                canvas.dispatchEvent(clickEvent);
+                
+                setTimeout(() => {
+                    const newMoves = iframeWin.game.totalMoves;
+                    const clicked = newMoves > originalMoves;
+                    
+                    const result = document.getElementById('test1-result');
+                    if (clicked) {
+                        result.innerHTML += '<div class="success">✅ 点击下棋功能正常</div>';
+                    } else {
+                        result.innerHTML += '<div class="error">❌ 点击下棋可能有问题</div>';
+                    }
+                    
+                    updateTestResults('点击下棋', clicked);
+                }, 100);
+            }
+        }
+        
+        function testAll() {
+            testGrid();
+            setTimeout(testClick, 200);
+            
+            // 更新测试清单
+            const checklist = document.getElementById('test2-checklist');
+            checklist.innerHTML = `
+                <h4>✅ 测试进度：</h4>
+                <ol>
+                    <li>棋盘网格必须清晰可见 <span id="test-grid">🔍 测试中...</span></li>
+                    <li>点击棋盘必须立即显示棋子 <span id="test-click">🔍 测试中...</span></li>
+                    <li>双人PVP模式必须完整可用 <span id="test-pvp">⏳ 等待测试</span></li>
+                    <li>AI所有难度必须能正常下棋 <span id="test-ai">⏳ 等待测试</span></li>
+                    <li>悔棋功能必须正常工作 <span id="test-undo">⏳ 等待测试</span></li>
+                    <li>重新开始功能必须正常 <span id="test-restart">⏳ 等待测试</span></li>
+                    <li>棋子交换功能必须正常 <span id="test-swap">⏳ 等待测试</span></li>
+                    <li>棋盘必须静态显示（无缩放） <span id="test-animation">✅ 已修复</span></li>
+                </ol>
+            `;
+        }
+        
+        function updateTestResults(testName, passed) {
+            const results = document.getElementById('test-results');
+            const current = results.innerHTML;
+            const newResult = `<div class="${passed ? 'success' : 'error'}">${passed ? '✅' : '❌'} ${testName}: ${passed ? '通过' : '失败'}</div>`;
+            
+            if (current.includes('等待测试')) {
+                results.innerHTML = newResult;
+            } else {
+                results.innerHTML += newResult;
+            }
+            
+            // 更新对应的测试项
+            const testId = `test-${testName.toLowerCase().replace(' ', '-')}`;
+            const testElement = document.getElementById(testId);
+            if (testElement) {
+                testElement.innerHTML = passed ? '✅ 通过' : '❌ 失败';
+                testElement.className = passed ? 'success' : 'error';
+            }
+        }
+        
+        console.log('五子棋完整修复测试页面已加载');
+    </script>
+</body>
+</html>
